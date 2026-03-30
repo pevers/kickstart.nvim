@@ -602,9 +602,10 @@ require('lazy').setup({
       local servers = {
         -- clangd = {},
         -- gopls = {},
-        -- pyright = {},
+        pyright = {},
+        ruff = {},
         -- rust_analyzer = {},
-        --
+        -- --
         -- Some languages (like typescript) have entire language plugins that can be useful:
         --    https://github.com/pmizio/typescript-tools.nvim
         --
@@ -653,6 +654,7 @@ require('lazy').setup({
       local ensure_installed = vim.tbl_keys(servers or {})
       vim.list_extend(ensure_installed, {
         -- You can add other tools here that you want Mason to install
+        'debugpy',
       })
 
       require('mason-tool-installer').setup { ensure_installed = ensure_installed }
