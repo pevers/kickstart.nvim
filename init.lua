@@ -831,6 +831,7 @@ require('lazy').setup({
           if not language then return end
 
           local installed_parsers = require('nvim-treesitter').get_installed 'parsers'
+          local available_parsers = require('nvim-treesitter').get_available 'parsers'
 
           if vim.tbl_contains(installed_parsers, language) then
             -- enable the parser if it is installed
