@@ -101,6 +101,9 @@ vim.diagnostic.config {
   jump = { float = true },
 }
 
+-- Copy the file path of the current file to the clipboard
+vim.keymap.set('n', '<leader>cp', function() vim.fn.setreg('+', vim.fn.expand '%:~:.') end, { desc = '[C]opy file [P]ath' })
+
 vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostic [Q]uickfix list' })
 vim.keymap.set('n', '<leader>e', vim.diagnostic.open_float, { desc = 'Show diagnostic [E]rror message' })
 
@@ -801,7 +804,7 @@ require('lazy').setup({
     config = function()
       -- ensure basic parser are installed
       local parsers = { 'bash', 'c', 'diff', 'html', 'lua', 'luadoc', 'markdown', 'markdown_inline', 'query', 'vim', 'vimdoc' }
-      require('nvim-treesitter').install(parsers)
+      require('nvim-treesitter').install(parsers, { prefer_git = true })
 
       ---@param buf integer
       ---@param language string
@@ -820,7 +823,6 @@ require('lazy').setup({
         vim.bo.indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
       end
 
-      local available_parsers = require('nvim-treesitter').get_available()
       vim.api.nvim_create_autocmd('FileType', {
         callback = function(args)
           local buf, filetype = args.buf, args.match
@@ -865,7 +867,7 @@ require('lazy').setup({
   --    This is the easiest way to modularize your config.
   --
   --  Uncomment the following line and add your plugins to `lua/custom/plugins/*.lua` to get going.
-  -- { import = 'custom.plugins' },
+  { import = 'custom.plugins' },
   --
   -- For additional information with loading, sourcing and examples see `:help lazy.nvim-🔌-plugin-spec`
   -- Or use telescope!
