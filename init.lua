@@ -30,6 +30,13 @@ vim.o.showmode = false
 --  See `:help 'clipboard'`
 vim.schedule(function() vim.o.clipboard = 'unnamedplus' end)
 
+-- Send deletes/changes to black hole register so they don't clobber the clipboard
+vim.keymap.set({ 'n', 'v' }, 'd', '"_d')
+vim.keymap.set({ 'n', 'v' }, 'D', '"_D')
+vim.keymap.set({ 'n', 'v' }, 'c', '"_c')
+vim.keymap.set({ 'n', 'v' }, 'C', '"_C')
+vim.keymap.set('n', 'x', '"_x')
+
 -- Enable break indent
 vim.o.breakindent = true
 
@@ -94,7 +101,7 @@ vim.diagnostic.config {
   underline = { severity = { min = vim.diagnostic.severity.WARN } },
 
   -- Can switch between these as you prefer
-  virtual_text = true, -- Text shows up at the end of the line
+  virtual_text = true,   -- Text shows up at the end of the line
   virtual_lines = false, -- Text shows up underneath the line, with virtual lines
 
   -- Auto open the float, so you can easily read the errors when jumping with `[d` and `]d`
@@ -102,7 +109,8 @@ vim.diagnostic.config {
 }
 
 -- Copy the file path of the current file to the clipboard
-vim.keymap.set('n', '<leader>cp', function() vim.fn.setreg('+', vim.fn.expand '%:~:.') end, { desc = '[C]opy file [P]ath' })
+vim.keymap.set('n', '<leader>cp', function() vim.fn.setreg('+', vim.fn.expand '%:~:.') end,
+  { desc = '[C]opy file [P]ath' })
 
 vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostic [Q]uickfix list' })
 vim.keymap.set('n', '<leader>e', vim.diagnostic.open_float, { desc = 'Show diagnostic [E]rror message' })
@@ -185,7 +193,15 @@ require('lazy').setup({
     -- Lazy loading is not recommended because it is very tricky to make it work correctly in all situations.
     lazy = false,
     config = function()
-      require('oil').setup()
+      require('oil').setup {
+        keymaps = {
+          ['<C-h>'] = false,
+          ['<C-j>'] = false,
+          ['<C-k>'] = false,
+          ['<C-l>'] = false,
+          ['<leader>r'] = 'actions.refresh',
+        },
+      }
 
       -- Open Oil in the current Window
       vim.keymap.set('n', '-', '<CMD>Oil<CR>', { desc = 'Open parent directory' })
@@ -253,10 +269,10 @@ require('lazy').setup({
 
       -- Document existing key chains
       spec = {
-        { '<leader>s', group = '[S]earch', mode = { 'n', 'v' } },
+        { '<leader>s', group = '[S]earch',    mode = { 'n', 'v' } },
         { '<leader>t', group = '[T]oggle' },
-        { '<leader>h', group = 'Git [H]unk', mode = { 'n', 'v' } }, -- Enable gitsigns recommended keymaps first
-        { 'gr', group = 'LSP Actions', mode = { 'n' } },
+        { '<leader>h', group = 'Git [H]unk',  mode = { 'n', 'v' } }, -- Enable gitsigns recommended keymaps first
+        { 'gr',        group = 'LSP Actions', mode = { 'n' } },
       },
     },
   },
@@ -297,7 +313,7 @@ require('lazy').setup({
       { 'nvim-telescope/telescope-ui-select.nvim' },
 
       -- Useful for getting pretty icons, but requires a Nerd Font.
-      { 'nvim-tree/nvim-web-devicons', enabled = vim.g.have_nerd_font },
+      { 'nvim-tree/nvim-web-devicons',            enabled = vim.g.have_nerd_font },
     },
     config = function()
       -- Telescope is a fuzzy finder that comes with a lot of different things that
@@ -345,6 +361,9 @@ require('lazy').setup({
       vim.keymap.set('n', '<leader>sh', builtin.help_tags, { desc = '[S]earch [H]elp' })
       vim.keymap.set('n', '<leader>sk', builtin.keymaps, { desc = '[S]earch [K]eymaps' })
       vim.keymap.set('n', '<leader>sf', builtin.find_files, { desc = '[S]earch [F]iles' })
+      vim.keymap.set('n', '<leader>sa', function()
+        builtin.find_files { hidden = true, no_ignore = true }
+      end, { desc = '[S]earch [A]ll files (incl. hidden)' })
       vim.keymap.set('n', '<leader>ss', builtin.builtin, { desc = '[S]earch [S]elect Telescope' })
       vim.keymap.set({ 'n', 'v' }, '<leader>sw', builtin.grep_string, { desc = '[S]earch current [W]ord' })
       vim.keymap.set('n', '<leader>sg', builtin.live_grep, { desc = '[S]earch by [G]rep' })
@@ -379,7 +398,8 @@ require('lazy').setup({
 
           -- Fuzzy find all the symbols in your current workspace.
           -- Similar to document symbols, except searches over your entire project.
-          vim.keymap.set('n', 'gW', builtin.lsp_dynamic_workspace_symbols, { buffer = buf, desc = 'Open Workspace Symbols' })
+          vim.keymap.set('n', 'gW', builtin.lsp_dynamic_workspace_symbols,
+            { buffer = buf, desc = 'Open Workspace Symbols' })
 
           -- Jump to the type of the word under your cursor.
           -- Useful when you're not sure what type a variable is and you want to see
@@ -412,7 +432,8 @@ require('lazy').setup({
       )
 
       -- Shortcut for searching your Neovim configuration files
-      vim.keymap.set('n', '<leader>sn', function() builtin.find_files { cwd = vim.fn.stdpath 'config' } end, { desc = '[S]earch [N]eovim files' })
+      vim.keymap.set('n', '<leader>sn', function() builtin.find_files { cwd = vim.fn.stdpath 'config' } end,
+        { desc = '[S]earch [N]eovim files' })
     end,
   },
 
@@ -527,7 +548,9 @@ require('lazy').setup({
           --
           -- This may be unwanted, since they displace some of your code
           if client and client:supports_method('textDocument/inlayHint', event.buf) then
-            map('<leader>th', function() vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled { bufnr = event.buf }) end, '[T]oggle Inlay [H]ints')
+            map('<leader>th',
+              function() vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled { bufnr = event.buf }) end,
+              '[T]oggle Inlay [H]ints')
           end
         end,
       })
@@ -803,7 +826,8 @@ require('lazy').setup({
     -- [[ Configure Treesitter ]] See `:help nvim-treesitter-intro`
     config = function()
       -- ensure basic parser are installed
-      local parsers = { 'bash', 'c', 'diff', 'html', 'lua', 'luadoc', 'markdown', 'markdown_inline', 'query', 'vim', 'vimdoc' }
+      local parsers = { 'bash', 'c', 'diff', 'html', 'lua', 'luadoc', 'markdown', 'markdown_inline', 'query', 'vim',
+        'vimdoc' }
       require('nvim-treesitter').install(parsers, { prefer_git = true })
 
       ---@param buf integer
