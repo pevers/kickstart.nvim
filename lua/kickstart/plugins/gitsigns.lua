@@ -45,6 +45,7 @@ return {
       map('n', '<leader>hr', gitsigns.reset_hunk, { desc = 'git [r]eset hunk' })
       map('n', '<leader>hS', gitsigns.stage_buffer, { desc = 'git [S]tage buffer' })
       map('n', '<leader>hR', gitsigns.reset_buffer, { desc = 'git [R]eset buffer' })
+      map('n', '<leader>hu', gitsigns.reset_buffer_index, { desc = 'git [u]nstage buffer' })
       map('n', '<leader>hp', gitsigns.preview_hunk, { desc = 'git [p]review hunk' })
       map('n', '<leader>hi', gitsigns.preview_hunk_inline, { desc = 'git preview hunk [i]nline' })
       map('n', '<leader>hb', function() gitsigns.blame_line { full = true } end, { desc = 'git [b]lame line' })
